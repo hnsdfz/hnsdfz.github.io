@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+   <head>
+       <meta charset="utf-8">
+   </head>
+   <body style="height: 100%; margin: 0">
+       <div id="container" style="height: 100%"></div>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts-gl/echarts-gl.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts-stat/ecStat.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/dataTool.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/china.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/world.js"></script>
+       <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ZUONbpqGBsYGXNIYHicvbAbM"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/bmap.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/simplex.js"></script>
+       <script type="text/javascript">
+var dom = document.getElementById("container");
+var myChart = echarts.init(dom);
+var app = {};
+option = null;
+var geoCoordMap = {
+    '重庆':[106.54,29.59],
+'长沙':[113,28.21],
+'徐州':[117.2,34.26],
+'香港':[114.15,22.15],
+'西安':[108.95,34.27],
+'武汉':[114.31,30.52],
+'天津':[117.2,39.13],
+'深圳':[114.07,22.62],
+'上海':[121.48,31.22],
+'南京':[118.78,32.04],
+'昆明':[102.73,25.04],
+'合肥':[117.27,31.86],
+'杭州':[120.19,30.26],
+'哈尔滨':[126.63,45.75],
+'广州':[113.23,23.16],
+'成都':[104.06,30.67],
+'北京':[116.46,39.92],
+'新加坡':[103.38,1.09],
+'罗切斯特':[-77.37,43.12],
+
+'湖南师大附中':[113,28.21]
+
+};
+var BJData = [
+[{name:'重庆' ,value:2},{name:'长沙'}],
+[{name:'长沙' ,value:2},{name:'长沙'}],
+[{name:'徐州' ,value:1},{name:'长沙'}],
+[{name:'香港' ,value:1},{name:'长沙'}],
+[{name:'西安' ,value:1},{name:'长沙'}],
+[{name:'武汉' ,value:5},{name:'长沙'}],
+[{name:'天津' ,value:2},{name:'长沙'}],
+[{name:'深圳' ,value:1},{name:'长沙'}],
+[{name:'上海' ,value:8},{name:'长沙'}],
+[{name:'南京' ,value:4},{name:'长沙'}],
+[{name:'昆明' ,value:1},{name:'长沙'}],
+[{name:'合肥' ,value:1},{name:'长沙'}],
+[{name:'杭州' ,value:3},{name:'长沙'}],
+[{name:'哈尔滨'    ,value:1},{name:'长沙'}],
+[{name:'广州' ,value:5},{name:'长沙'}],
+[{name:'成都' ,value:1},{name:'长沙'}],
+[{name:'北京' ,value:15  },{name:'长沙'}],
+
+[{name:'新加坡' ,value:1  },{name:'长沙'}],
+[{name:'罗切斯特' ,value:1  },{name:'长沙'}],
+
+
+];
+var convertData = function (data) {
+    var res = [];
+    for (var i = 0; i < data.length; i++) {
+        var dataItem = data[i];
+        var toCoord = geoCoordMap[dataItem[0].name];
+        var fromCoord = geoCoordMap[dataItem[1].name];
+        if (fromCoord && toCoord) {
+            res.push([
+              {
+                  coord:fromCoord,
+                  value: dataItem[0].value
+              },
+              {
+                coord: toCoord,
+              }
+            ]);
+        }
+    }
+    return res;
+};
+
+var color = ['#a6c84c', '#ffa022', '#46bee9'];
+var series = [];
+[['湖南师大附中', BJData]].forEach(function (item, i) {
+    series.push(
+    {
+        type: 'lines',
+        zlevel: 2,
+        effect: {
+            show: true,
+            period: 4, //箭头指向速度，值越小速度越快
+            trailLength: 0.2,//特效尾迹长度[0,1]值越大，尾迹越长重
+            symbol:'arrow',//箭头图标
+            symbolSize: 5,//图标大小
+        },
+        lineStyle: {
+            normal: {
+                width: 10,//尾迹线条宽度
+                opacity: 0,//尾迹线条透明度
+                curveness: 0 //尾迹线条曲直度
+            }
+        },
+        
+        data: convertData(item[1])
+    },
+    {
+        type: 'effectScatter',
+        coordinateSystem: 'geo',
+        zlevel: 2,
+        rippleEffect: {//涟漪特效
+          period:4,//动画时间，值越小速度越快
+            brushType: 'stroke', //波纹绘制方式 stroke, fill
+            scale: 4 //波纹圆环最大限制，值越大波纹越大
+        },
+        label: {
+            normal: {
+                show: true,
+                position: 'right',//显示位置
+                offset:[5, 0], //偏移设置
+                formatter: '{b}' //圆环显示文字
+            },
+            emphasis: {
+              show: true
+            }
+        },
+        symbol: 'circle',
+        symbolSize: function (val) {
+            return 4 + val[2] / 100; //圆环大小
+        },
+        itemStyle: {
+            normal: {
+              show: true,
+                color: '#f00'
+            }
+        },
+        data: item[1].map(function (dataItem) {
+            return {
+                name: dataItem[0].name,
+                value: geoCoordMap[dataItem[0].name].concat([dataItem[0].value])
+            };
+        }),
+    },
+    //被攻击点
+    {
+        type: 'scatter',
+        coordinateSystem: 'geo',
+        zlevel: 2,
+        rippleEffect: {
+          period:4,
+            brushType: 'stroke',
+            scale: 4
+        },
+        label: {
+            normal: {
+                show: true,
+                position: 'right',
+//                      offset:[5, 0],
+        
+        color:'#00ffff',
+                formatter: '{b}',
+                textStyle: {
+                  color:"#00ffff"
+                }
+            },
+            emphasis: {
+              show: true
+            }
+        },
+        symbol: 'pin',
+        symbolSize:30,
+        itemStyle: {
+            normal: {
+              show: true,
+                color: '#9966cc'
+            }
+        },
+        data:[{
+            name: item[0],
+            value: geoCoordMap[item[0]].concat([100]),
+        }],
+    }
+    );
+});
+
+var person=[];
+person['重庆']="马乔木,范向洋";
+person['长沙']="汤晓薇,王语馨,曾烨昊,李煜恒";
+person['徐州']="瞿澜馨";
+person['香港']="熊采薇";
+person['西安']="段然";
+person['武汉']="何丹,赵卓涵,鲁若天,唐焕泽,肖亦卓";
+person['天津']="何亚琪,刘泽治";
+person['深圳']="杨雨欣";
+person['上海']="唐一铬,夏嘉蔚,肖珊羽,肖音,罗毅卓,张羽涛,刘倚臣,薛振梁";
+person['南京']="郭津岩,厉曹哲,刘昊均,刘张旭";
+person['昆明']="叶敬旴";
+person['合肥']="周泽淳";
+person['杭州']="陈理泽,周晟,李澍";
+person['哈尔滨']="吴雨伦";
+person['广州']="胡霆熙,周羿,姚望,刘轩豪,李雅馨";
+person['成都']="肖湘宇";
+person['北京']="李金瑛,刘米可,刘诗意,吴怡澜,周扬,邓明广,方泽儒,冯睿杰,刘开星,罗迪,谭昊炎,曾兆邦,杨渊丞,雷雨涵,陈颖仟僖";
+person['新加坡']="黄云帆";
+person['罗切斯特']="黄耀中";
+
+
+option = {
+    backgroundColor: '#404a59',
+  title: {
+            text: '1502蹭饭地图',
+            textStyle:{
+              color:'#fff',
+              fontSize:20
+            },
+            padding:[20,20,20,20]
+    },
+    tooltip : {
+        trigger : 'item',
+        backgroundColor:'rgba(12, 204, 104, 0.92)',
+        borderColor:'#FFFFCC',
+        showDelay : 0,
+        hideDelay : 0,
+        enterable:true,
+        transitionDuration : 0,
+        extraCssText:'z-index:100',
+        formatter : function(params, ticket, callback) {
+            //根据业务自己拓展要显示的内容
+          var res = "";
+          var name = params.name;
+          var value = params.value;
+          // console.log(person[name]);
+          if(person[name]) res = "<span>"+person[name]+"</span>";
+          return res;
+        }
+  },
+  visualMap: { //图例值控制
+        min : 0,
+        max : 15,
+        calculable : true,
+        color: ['#ff3333', 'orange','yellowgreen', 'palegreen','peru','lime','khaki','aqua'],
+        textStyle:{
+            color:'#fff'
+        }
+    },
+  geo: {
+    map: 'world',
+    label: {
+      emphasis: {
+        show: false
+      }
+    },
+    zoom:1.3,
+    roam: true, //是否允许缩放
+    layoutCenter: ['-55%', '110%'], //地图位置
+    layoutSize:"580%",
+    itemStyle: {
+      normal: {
+        color: 'rgba(51, 69, 89, .5)', //地图背景色
+        borderColor: 'rgba(100,149,237,1)' //省市边界线
+      },
+      emphasis: {
+        color: 'rgba(37, 43, 61, .5)'//悬浮背景
+      }
+    }
+  },
+          
+    series: series
+};
+
+    var counts = option.series[0].data.length; //获取所有闪动圆环数量
+    var dataIndex = 0;
+    //让圆环的提示框自动触发轮播显示
+  function autoHoverTip(){
+     for(var i = 0;i<counts;i++){
+       (function (i) {
+                 ts = setTimeout(function () {
+                    myChart.dispatchAction({
+            type: 'showTip',
+            seriesIndex: 1,
+            dataIndex: i
+          });
+                     }, 5000*i);
+                })(i);
+      }
+  }
+  
+  //   setTimeout(function() {
+  //    // autoHoverTip();
+  //        tv = setInterval(autoHoverTip, counts*5600);
+  // }, 500);
+
+if (option && typeof option === "object") {
+    myChart.setOption(option, true);
+}
+       </script>
+   </body>
+</html>
